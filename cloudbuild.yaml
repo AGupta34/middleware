@@ -1,8 +1,27 @@
 steps:
-   - name: 'gcr.io/cloud-builders/docker'
-     args: [ 'build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/docker-builds/builder', '.' ]
-images: ['$_REGION-docker.pkg.dev/${PROJECT_ID}/docker-builds/builder']     
+   - id: 'Build Middleware'
+     name: 'gcr.io/cloud-builders/docker'
+     args: [ 'build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/docker-builds/middleware:v1', '.' ]
+   
+   - id: 'Push Middleware Image'
+     name: 'gcr.io/cloud-builders/docker'
+     args: ['push', '$_REGION-docker.pkg.dev/$PROJECT_ID/docker-builds/middleware:v1']
+     
+   - id: 'Deploy Middleware'
+     name: gcr.io/cloud-builders/gcloud
+     entrypoint: 'scripts/deploy.sh'
+     args: [ "middleware" ]
+     env:
+      - PROJECT_ID=${_PROJECT_ID}
+      - GOOGLE_IMPERSONATE_SERVICE_ACCOUNT=${_TERRA_SA}
+      - IMAGE_NAME=${_IMAGE_BASE}middleware:v1
+
+logsBucket: "gs://${_PROJECT_ID}-build-reports/build-logs/middleware"
+options:
+  logging: GCS_ONLY     
 timeout: 1800s
 substitutions:
   _REGION: northamerica-northeast1
   _BUILD_NAME: $_REGION-docker.pkg.dev/${_PROJECT_ID}/docker-builds/builder
+  _TERRA_SA: sa-terraform@${_PROJECT_ID}.iam.gserviceaccount.com
+  _IMAGE_BASE: northamerica-northeast1-docker.pkg.dev/${_PROJECT_ID}/docker-builds/
