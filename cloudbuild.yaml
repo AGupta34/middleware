@@ -9,8 +9,8 @@ steps:
      
    - id: 'Deploy Middleware'
      name: gcr.io/cloud-builders/gcloud
-     entrypoint: 'scripts/deploy.sh'
-     args: [ "middleware" ]
+     entrypoint: bash
+     args: [ 'chmod 777 -R scripts', "middleware" ]
      env:
       - PROJECT_ID=${_PROJECT_ID}
       - GOOGLE_IMPERSONATE_SERVICE_ACCOUNT=${_TERRA_SA}
